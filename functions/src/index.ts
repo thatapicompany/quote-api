@@ -3,43 +3,53 @@ import * as express from 'express'
 import { addQuote,getAllQuotes, updateQuote, deleteQuote ,getRandomQuote } from './quotesController'
 
 import { admin } from './config/firebase'
+import TheAuthAPI from 'theauthapi'
 
 const cookieParser = require('cookie-parser')();
 const cors = require('cors')({origin: true});
-const app = express();
+const app =  express();
 
-const axios = require('axios').default;
 
-const THE_AUTH_API_KEY = process.env.THE_AUTH_API_KEY;
+const THE_AUTH_API_KEY = process.env.THE_AUTH_API_KEY || "1234";
+const auth = new TheAuthAPI(THE_AUTH_API_KEY);
 
 const apiKeyAuth = async(req:any, res:any, next:any) => {
-    const key = req.header('x-api-key') || req.header('api_key');//.apiKey;
-    console.log(`apiKeyAuth ${key}`)
+    const key:string = req.header('x-api-key') || req.header('api_key');//.apiKey;
+
     if(key) {
-        try{
-            const options = {
-                method: 'get',
-                headers:{
-                    "User-Agent":`TheLocationAPI.com/${process.env.npm_package_version}`, // set user agent to help logging and debugging
-                    "x-api-key":THE_AUTH_API_KEY // use the access_key from the Auth API account
-                }, 
-                baseURL: `https://api.theauthapi.com/api-keys/${key}` // append the api-key the client has passed which should be validated
-            };
 
-            const apiResponse = await axios.request(options);
-            const lookupResponse = apiResponse.data;
-            if(lookupResponse) {
-                const metadata = lookupResponse.customMetadata || lookupResponse.customMetaData
-                req.user = {...metadata, accountId: lookupResponse.customAccountId, userId: lookupResponse.customUserId, type:"API_KEY" }
-            }
-        }catch(err){
+      try{
+        console.log(`Verifying x-api-key with TheAuthAPI.com: ${key}`)
+        const authedKey:any = await auth.authenticateAPIKey(key);
 
-            console.log(err)
-            return res.status(401).json({
-                status: 'error',
-                message: 'Invalid API Key'
-            })
+        if(authedKey)
+        {
+          console.log(`Verified as ${JSON.stringify(authedKey)}`)
+
+          req.user = {
+          ...authedKey, 
+          accountId: authedKey.customAccountId, 
+          userId: authedKey.customUserId, 
+          type:"API_KEY_LIB" };
+
+        }else{
+
+          console.log(`Invalid key: ${key}`)
+          
+          return res.status(401).json({
+            status: 'error',
+            message: 'Invalid API Key'
+          })
         }
+
+      }catch(err){
+        
+        console.log(err.message)
+        return res.status(401).json({
+            status: 'error',
+            message: 'Invalid API Key'
+        })
+      }
     }
     next();
 }
@@ -107,7 +117,7 @@ app.use(apiKeyAuth);
 app.use(validateFirebaseIdToken);
 app.use(isAuthenticated);
 
-app.get('/', (req, res) => res.status(200).send(`The Quote API (v${process.env.npm_package_version}), another fine product from ThatAPICompany.`));
+app.get('/', (req:any, res:any) => res.status(200).send(`The Quote API (v${process.env.npm_package_version}), another fine product from ThatAPICompany.`));
 app.post('/quotes', addQuote)
 app.get('/quotes', getAllQuotes)
 app.get('/quotes/random', getRandomQuote)
