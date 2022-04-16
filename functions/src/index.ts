@@ -9,10 +9,6 @@ const THE_AUTH_API_PROJECT_ID =process.env.THE_AUTH_API_PROJECT_ID||""
 
 const SENDGRID_KEY =process.env.SENDGRID_KEY||""
 
-//const NETLIFY_API_KEY = process.env.NETLIFY_API_KEY || "";
-//const NETLIFY_SITE_ID=process.env.NETLIFY_SITE_ID||""
-
-//const axios = require('axios');
 const multer  = require('multer');
 // @ts-ignore
 
@@ -24,7 +20,8 @@ app.use(cors);
 app.use(cookieParser);
 
 const isAuthenticated = (req:any, res:any, next:any) => {
-  if(! req.user ) {
+  console.log("isAuthenticated", req.path)
+  if(! req.user && req.path !="/api/") {
       res.status(403).send('Unauthorized User');
       return;
   }
@@ -182,31 +179,18 @@ app.post('/receive-email', upload.none(), async(req, res) => {
     console.log(`Deactivating existing key: ${existingKey.key}`);
     await auth.apiKeys.deleteKey(existingKey.key);
   }
-    
+  
   await sendUserNewKey(user);
 
   return res.status(200).send();
 });
 
-exports.QuoteAPI = functions.https.onRequest(app)
-
+exports.APIFunctions = functions.https.onRequest(app)
 // when a new user signs up, then we create then a key and email it to them
 exports.sendWelcomeEmailWithAPIKey = functions.auth.user().onCreate(async(user) => {
   console.log("User has signed up",user)
   await sendUserNewKey(user);
 })
-
-/*const updateNetlifyDemoKey = async(demoKey:string) => {
-//https://github.com/netlify/js-client
-  const netlify = new NetlifyAPI(NETLIFY_API_KEY);
-  await netlify.updateSite({build_settings:{env:{ DEMO_KEY: demoKey}}}, NETLIFY_SITE_ID);
-  const key = await netlify.createDeployKey({
-    site_id: NETLIFY_SITE_ID
-  });
-  console.log(`Created new demo key: ${key.key}`);
-
-}*/
-
 
 // rotate demo key
 exports.rotateDemoKey = functions.pubsub.schedule('every 24 hours').onRun(async (context) => {

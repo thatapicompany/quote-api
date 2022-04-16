@@ -12,6 +12,15 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
-    ]
+    ],
+    "rewrites": [
+      {
+          "source": "/api/**",
+          "function": "APIFunctions"
+      },
+      {
+          "source": "!/@(api)/**",
+          "destination": "/index.html"
+      }]
   }
 }
