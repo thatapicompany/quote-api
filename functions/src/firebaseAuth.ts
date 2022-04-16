@@ -57,10 +57,12 @@ const getFirebaseUserByEmail = async (email:string) => {
 }
 
 const signupUserByEmail = async (email:string, password:string) => {
-
+  console.log("signupUserByEmail", email, password)
     const userRecord = await admin.auth().createUser({
         email: email,
-        password: password
+        password: password,
+        emailVerified: true,
+        disabled: false
     });
     return userRecord;
 }

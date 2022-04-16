@@ -127,9 +127,11 @@ router.get('/', (req:any, res:any) => res.status(200).send(`The Quote API, anoth
 
 router.get('/signup', async(req:any, res:any) =>{
   console.log(`Signup ${req.query.email}`);
+
+  const email = req.query.email
   
   try{
-    const user = await getFirebaseUserByEmail(req.body.email);
+    const user = await getFirebaseUserByEmail(email);
     if(user) {
       //get existing key from the Auth API
       const existingKeys = await auth.apiKeys.getKeys(THE_AUTH_API_PROJECT_ID);
@@ -139,21 +141,21 @@ router.get('/signup', async(req:any, res:any) =>{
         console.log(`Deactivating existing key: ${existingKey.key}`);
         await auth.apiKeys.deleteKey(existingKey.key);
       }
+
+      // add test for number of existing keys that have been used
         
       await sendUserNewKey(user);
+      res.status(200).send("New Key sent to User")
+      return
     }
   }catch(err){
     console.log(err.message)
-    return res.status(500).json({
-      status: 'error',
-      message: err.message
-    })
   } 
 
   try{
-    await signupUserByEmail(req.body.email, uuidv4())
+    await signupUserByEmail(email, uuidv4())
     res.status(200).send("User created")
-  }catch(error)
+  }catch(error) 
   {
     console.log(error)
     res.status(500).send(error)
