@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions'
 import * as express from 'express'
-import { addQuote,getAllQuotes, updateQuote, deleteQuote ,getRandomQuote } from './quotesController'
+import { handleAddQuote,handleGetAllQuotes, handleUpdateQuote, handleDeleteQuote,handleGetRandomQuote } from './quotesController'
 import { v4 as uuidv4 } from 'uuid';
 import { signupUserByEmail, getFirebaseUserByEmail } from './firebaseAuth'
 
@@ -21,7 +21,7 @@ app.use(cookieParser);
 
 const isAuthenticated = (req:any, res:any, next:any) => {
   console.log("isAuthenticated", req.path)
-  if(! res.locals.user && req.path !="/api/") {
+  if(! res.locals.user && req.path !=="/api/") {
       res.status(403).send('Unauthorized User');
       return;
   }
@@ -69,7 +69,7 @@ export interface IAuthenticatedUser {
  
            res.locals.user = { accountId: authedKey.customAccountId };
 
-           if(authedKey.customData.isDemo === "demo") {
+           if(authedKey.customMetadata.isDemo === "demo") {
              res.locals.user.isDemo = true;
            }
  
@@ -121,9 +121,9 @@ app.use(apiKeyAuthMiddleware);
 app.use(isAuthenticated);
 
 //root
-app.get('/', (req:any, res:any) => res.status(200).send(`The Quote API (v${process.env.npm_package_version}), another fine product from ThatAPICompany.`));
+app.get('/api', (req:any, res:any) => res.status(200).send(`The Quote API, another fine product from ThatAPICompany.`));
 
-app.post('/signup', async(req:any, res:any) =>{
+app.post('/api/signup', async(req:any, res:any) =>{
   
   try{
     const user = await getFirebaseUserByEmail(req.body.email);
@@ -158,11 +158,11 @@ app.post('/signup', async(req:any, res:any) =>{
 
 })
 //Quote related endpoints
-app.post('/quotes', addQuote)
-app.get('/quotes', getAllQuotes)
-app.get('/quotes/random', getRandomQuote)
-app.patch('/quotes/:quoteId', updateQuote)
-app.delete('/quotes/:quoteId', deleteQuote)
+app.post('/api/quotes', handleAddQuote)
+app.get('/api/quotes', handleGetAllQuotes)
+app.get('/api/quotes/random', handleGetRandomQuote)
+app.patch('/api/quotes/:quoteId', handleUpdateQuote)
+app.delete('/api/quotes/:quoteId', handleDeleteQuote)
 
 const upload = multer();
 app.post('/receive-email', upload.none(), async(req, res) => {
