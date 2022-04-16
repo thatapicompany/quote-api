@@ -20,8 +20,8 @@ app.use(cors);
 app.use(cookieParser);
 
 const isAuthenticated = (req:any, res:any, next:any) => {
-  console.log("isAuthenticated", req.path)
-  if(! res.locals.user && req.path !=="/api/") {
+  console.log("isAuthenticated", req.path , req.method)
+  if(! res.locals.user && !["/api/signup","/api/"].includes(req.path)) {
       res.status(403).send('Unauthorized User');
       return;
   }
@@ -120,10 +120,13 @@ app.use(apiKeyAuthMiddleware);
 
 app.use(isAuthenticated);
 
-//root
-app.get('/api', (req:any, res:any) => res.status(200).send(`The Quote API, another fine product from ThatAPICompany.`));
+var router = express.Router();
 
-app.post('/api/signup', async(req:any, res:any) =>{
+//root
+router.get('/', (req:any, res:any) => res.status(200).send(`The Quote API, another fine product from ThatAPICompany.`));
+
+router.get('/signup', async(req:any, res:any) =>{
+  console.log(`Signup ${req.query.email}`);
   
   try{
     const user = await getFirebaseUserByEmail(req.body.email);
@@ -158,14 +161,14 @@ app.post('/api/signup', async(req:any, res:any) =>{
 
 })
 //Quote related endpoints
-app.post('/api/quotes', handleAddQuote)
-app.get('/api/quotes', handleGetAllQuotes)
-app.get('/api/quotes/random', handleGetRandomQuote)
-app.patch('/api/quotes/:quoteId', handleUpdateQuote)
-app.delete('/api/quotes/:quoteId', handleDeleteQuote)
+router.post('/quotes', handleAddQuote)
+router.get('/quotes', handleGetAllQuotes)
+router.get('/quotes/random', handleGetRandomQuote)
+router.patch('/quotes/:quoteId', handleUpdateQuote)
+router.delete('/quotes/:quoteId', handleDeleteQuote)
 
 const upload = multer();
-app.post('/receive-email', upload.none(), async(req, res) => {
+router.post('/receive-email', upload.none(), async(req, res) => {
   const body = req.body;
 
   console.log(`From: ${body.from}`);
@@ -190,6 +193,7 @@ app.post('/receive-email', upload.none(), async(req, res) => {
   return res.status(200).send();
 });
 
+app.use('/api', router);
 exports.APIFunctions = functions.https.onRequest(app)
 // when a new user signs up, then we create then a key and email it to them
 exports.sendWelcomeEmailWithAPIKey = functions.auth.user().onCreate(async(user) => {

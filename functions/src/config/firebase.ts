@@ -8,7 +8,7 @@ export function readBaseJsonFile(fileName: string) {
   const fileContent = readFileSync(filePath).toString();
 
   return JSON.parse(fileContent);
-}
+}/*
 try{
   const serviceAccount = readBaseJsonFile('../creds/firebase-creds')
 
@@ -16,7 +16,7 @@ try{
     credential: admin.credential.cert(serviceAccount),
     databaseURL: 'https://quote-api-8c2df.firebaseio.com'
   })
-}catch(err){
+}catch(err){*/
 
   admin.initializeApp(/*{
     credential: admin.credential.cert({
@@ -28,8 +28,8 @@ try{
   }*/)
   
 
-  console.log(err)
-}
+ // console.log(err)
+//}
 
 
 const db = admin.firestore()
