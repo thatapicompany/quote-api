@@ -40,7 +40,7 @@ try {
 
 
 const getRandomQuote = async (req: Request, res: Response) => {
-  
+  // 
   const { params: { category } } = req
   console.log( category )
 
