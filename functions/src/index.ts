@@ -21,11 +21,16 @@ app.use(cookieParser);
 
 const isAuthenticated = (req:any, res:any, next:any) => {
   console.log("isAuthenticated", req.path)
-  if(! req.user && req.path !="/api/") {
+  if(! res.locals.user && req.path !="/api/") {
       res.status(403).send('Unauthorized User');
       return;
   }
   next();
+}
+
+export interface IAuthenticatedUser {
+  accountId: string
+  isDemo?: boolean
 }
 
 /**
@@ -62,11 +67,11 @@ const isAuthenticated = (req:any, res:any, next:any) => {
          {
            console.log(`Verified as ${JSON.stringify(authedKey)}`)
  
-           req.user = {
-           ...authedKey, 
-           accountId: authedKey.customAccountId, 
-           userId: authedKey.customUserId, 
-           type:"API_KEY_LIB" };
+           res.locals.user = { accountId: authedKey.customAccountId };
+
+           if(authedKey.customData.isDemo === "demo") {
+             res.locals.user.isDemo = true;
+           }
  
          }else{
  
