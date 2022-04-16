@@ -1,15 +1,21 @@
 import * as functions from 'firebase-functions'
 import * as express from 'express'
 import { addQuote,getAllQuotes, updateQuote, deleteQuote ,getRandomQuote } from './quotesController'
-
-import { getFirebaseUserByEmail } from './firebaseAuth'
+import { v4 as uuidv4 } from 'uuid';
+import { signupUserByEmail, getFirebaseUserByEmail } from './firebaseAuth'
 
 const THE_AUTH_API_KEY=process.env.THE_AUTH_API_KEY||"1234"
 const THE_AUTH_API_PROJECT_ID =process.env.THE_AUTH_API_PROJECT_ID||""
 
 const SENDGRID_KEY =process.env.SENDGRID_KEY||""
 
+//const NETLIFY_API_KEY = process.env.NETLIFY_API_KEY || "";
+//const NETLIFY_SITE_ID=process.env.NETLIFY_SITE_ID||""
+
+//const axios = require('axios');
 const multer  = require('multer');
+// @ts-ignore
+
 const cookieParser = require('cookie-parser')();
 const cors = require('cors')({origin: true});
 const app =  express();
@@ -101,8 +107,8 @@ const sendUserNewKey = async(user:any) => {
     to: user.email,
     from: 'keys@thequoteapi.com',
     subject: 'Welcome to The Quote API',
-    text: `Your API Key is: ${apiKey.key}`,
-    html: `<strong>Your API Key is: ${apiKey.key}</strong>`
+    text: `Your API Key is: ${apiKey.key}. If you need to change it just reply to this email.`,
+    html: `<strong>Your API Key is: ${apiKey.key}</strong>. If you need to change it just reply to this email.`
   };
   sgMail.send(msg);
 
@@ -115,6 +121,40 @@ app.use(isAuthenticated);
 //root
 app.get('/', (req:any, res:any) => res.status(200).send(`The Quote API (v${process.env.npm_package_version}), another fine product from ThatAPICompany.`));
 
+app.post('/signup', async(req:any, res:any) =>{
+  
+  try{
+    const user = await getFirebaseUserByEmail(req.body.email);
+    if(user) {
+      //get existing key from the Auth API
+      const existingKeys = await auth.apiKeys.getKeys(THE_AUTH_API_PROJECT_ID);
+      const existingKey = existingKeys.find(key => key.customAccountId === user.uid);
+      //create new key, send email with key
+      if(existingKey) {
+        console.log(`Deactivating existing key: ${existingKey.key}`);
+        await auth.apiKeys.deleteKey(existingKey.key);
+      }
+        
+      await sendUserNewKey(user);
+    }
+  }catch(err){
+    console.log(err.message)
+    return res.status(500).json({
+      status: 'error',
+      message: err.message
+    })
+  } 
+
+  try{
+    await signupUserByEmail(req.body.email, uuidv4())
+    res.status(200).send("User created")
+  }catch(error)
+  {
+    console.log(error)
+    res.status(500).send(error)
+  }
+
+})
 //Quote related endpoints
 app.post('/quotes', addQuote)
 app.get('/quotes', getAllQuotes)
@@ -156,20 +196,33 @@ exports.sendWelcomeEmailWithAPIKey = functions.auth.user().onCreate(async(user) 
   await sendUserNewKey(user);
 })
 
+/*const updateNetlifyDemoKey = async(demoKey:string) => {
+//https://github.com/netlify/js-client
+  const netlify = new NetlifyAPI(NETLIFY_API_KEY);
+  await netlify.updateSite({build_settings:{env:{ DEMO_KEY: demoKey}}}, NETLIFY_SITE_ID);
+  const key = await netlify.createDeployKey({
+    site_id: NETLIFY_SITE_ID
+  });
+  console.log(`Created new demo key: ${key.key}`);
 
-/*
+}*/
+
+
 // rotate demo key
-exports.scheduledFunction = functions.pubsub.schedule('every 7 days').onRun((context) => {
+exports.rotateDemoKey = functions.pubsub.schedule('every 24 hours').onRun(async (context) => {
   
-  console.log('This will be run every 7 days');
+  console.log('This will be run every 24 hours');
 
   // create new key which will auto expire in 48 hours
-
+  await auth.apiKeys.createKey({
+    name:"Demo Key",
+    projectId: THE_AUTH_API_PROJECT_ID,
+    customAccountId: "demo",
+  });
   // update env var in Netlify
-
-  // recompile
-
-});*/
+  //await updateNetlifyDemoKey(demoKey.key);
+  
+});
 
 /*
 exports.scheduledFunction = functions.pubsub.schedule('every 7 days').onRun((context) => {

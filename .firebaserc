@@ -1,5 +1,7 @@
 {
   "projects": {
-    "default": "thatapiplatform"
-  }
+    "default": "quote-api-8c2df",
+    "quote-api": "quote-api-8c2df"
+  },
+  "targets": {}
 }

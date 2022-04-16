@@ -55,5 +55,14 @@ const getFirebaseUserByEmail = async (email:string) => {
     const userRecord = await admin.auth().getUserByEmail(email);
     return userRecord;
 }
-  
-export { validateFirebaseIdToken,getFirebaseUserByEmail }
+
+const signupUserByEmail = async (email:string, password:string) => {
+
+    const userRecord = await admin.auth().createUser({
+        email: email,
+        password: password
+    });
+    return userRecord;
+}
+
+export { signupUserByEmail, validateFirebaseIdToken,getFirebaseUserByEmail }
