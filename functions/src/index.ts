@@ -9,7 +9,6 @@ const THE_AUTH_API_PROJECT_ID =process.env.THE_AUTH_API_PROJECT_ID||""
 
 const SENDGRID_KEY =process.env.SENDGRID_KEY||""
 
-const multer  = require('multer');
 // @ts-ignore
 
 const cookieParser = require('cookie-parser')();
@@ -116,19 +115,10 @@ const sendUserNewKey = async(user:any) => {
 
 }
 
-app.use(apiKeyAuthMiddleware);
-
-app.use(isAuthenticated);
-
-var router = express.Router();
-
-//root
-router.get('/', (req:any, res:any) => res.status(200).send(`The Quote API, another fine product from ThatAPICompany.`));
-
-router.get('/signup', async(req:any, res:any) =>{
+const signupOrRotate =  async(req:any, res:any) =>{
   console.log(`Signup ${req.query.email}`);
 
-  const email = req.query.email
+  const email = req.body.email || req.query.email
   
   try{
     const user = await getFirebaseUserByEmail(email);
@@ -161,7 +151,18 @@ router.get('/signup', async(req:any, res:any) =>{
     res.status(500).send(error)
   }
 
-})
+}
+app.use(apiKeyAuthMiddleware);
+
+app.use(isAuthenticated);
+
+var router = express.Router();
+
+//root
+router.get('/', (req:any, res:any) => res.status(200).send(`The Quote API, another fine product from ThatAPICompany.`));
+
+router.get('/signup',signupOrRotate);
+router.post('/signup-rotate',signupOrRotate);
 //Quote related endpoints
 router.post('/quotes', handleAddQuote)
 router.get('/quotes', handleGetAllQuotes)
@@ -169,63 +170,11 @@ router.get('/quotes/random', handleGetRandomQuote)
 router.patch('/quotes/:quoteId', handleUpdateQuote)
 router.delete('/quotes/:quoteId', handleDeleteQuote)
 
-const upload = multer();
-router.post('/receive-email', upload.none(), async(req, res) => {
-  const body = req.body;
-
-  console.log(`From: ${body.from}`);
-  console.log(`To: ${body.to}`);
-  console.log(`Subject: ${body.subject}`);
-  console.log(`Text: ${body.text}`);
-
-  //lookup user from email, get any existing keys using that ID, deactivate them
-  const user = await getFirebaseUserByEmail(body.from);
-
-  //get existing key from the Auth API
-  const existingKeys = await auth.apiKeys.getKeys(THE_AUTH_API_PROJECT_ID);
-  const existingKey = existingKeys.find(key => key.customAccountId === user.uid);
-  //create new key, send email with key
-  if(existingKey) {
-    console.log(`Deactivating existing key: ${existingKey.key}`);
-    await auth.apiKeys.deleteKey(existingKey.key);
-  }
-  
-  await sendUserNewKey(user);
-
-  return res.status(200).send();
-});
-
 app.use('/api', router);
 exports.APIFunctions = functions.https.onRequest(app)
+
 // when a new user signs up, then we create then a key and email it to them
 exports.sendWelcomeEmailWithAPIKey = functions.auth.user().onCreate(async(user) => {
   console.log("User has signed up",user)
   await sendUserNewKey(user);
 })
-
-// rotate demo key
-exports.rotateDemoKey = functions.pubsub.schedule('every 24 hours').onRun(async (context) => {
-  
-  console.log('This will be run every 24 hours');
-
-  // create new key which will auto expire in 48 hours
-  await auth.apiKeys.createKey({
-    name:"Demo Key",
-    projectId: THE_AUTH_API_PROJECT_ID,
-    customAccountId: "demo",
-  });
-  // update env var in Netlify
-  //await updateNetlifyDemoKey(demoKey.key);
-  
-});
-
-/*
-exports.scheduledFunction = functions.pubsub.schedule('every 7 days').onRun((context) => {
-  
-  console.log('This will be run every 7 days');
-
-  // send the user an email with their usage
-
-
-  return null;
-});*/
