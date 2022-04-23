@@ -1,14 +1,22 @@
 ### A Demo of how to use The Auth API in a Firebase API
 
+#### Setup
+
+Inside the Functions folder
+
+Create a new Firebase Project:
+
+Run `firebase use [PROJECT ID]`
+Run `firebase deploy`
 
 #### Deploy
 
-Inside the Functions folder
 ```
 npm run deploy --debug
 ```
 
 Roadmap:
+
 - [ ] Show how to use The Auth API to generate api keys for users when they signup via firebase
 - [x] Show how to integrate The Auth API as middleware to verify the api key
 - [x] Pull Quotes from JSON file
