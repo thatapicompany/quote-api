@@ -55,14 +55,14 @@ export const Signup = () => {
         rounded={"lg"}
         p={6}
       >
-        <Heading
+        <Text
           as={"h2"}
-          fontSize={{ base: "xl", sm: "2xl" }}
+          fontSize={{ base: "xl", sm: "1xl" }}
           textAlign={"center"}
           mb={5}
         >
           Enter your email address to receive your API Key
-        </Heading>
+        </Text>
         <Stack
           direction={{ base: "column", md: "row" }}
           as={"form"}

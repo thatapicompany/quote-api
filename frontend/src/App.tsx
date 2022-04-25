@@ -1,10 +1,11 @@
-import * as React from "react";
-import { ChakraProvider, Box, VStack, Grid, theme } from "@chakra-ui/react";
+import { ChakraProvider, Box, VStack, Grid } from "@chakra-ui/react";
 import { ColorModeSwitcher } from "./components/ColorModeSwitcher";
 import { Quote } from "./components/Quote";
 import { Signup } from "./components/Signup";
 import { About } from "./components/About";
 import { Logo } from "./components/Logo";
+import theme from "./Theme/Theme";
+import "@fontsource/dancing-script";
 
 export const App = () => (
   <ChakraProvider theme={theme}>

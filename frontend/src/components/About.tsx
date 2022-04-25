@@ -4,12 +4,16 @@ import { DiGithubBadge } from "react-icons/di";
 
 export const About = () => {
   return (
-    <Flex align={"center"} justify={"center"} bg="white">
+    <Flex
+      align={"center"}
+      justify={"center"}
+      bg="whiteAlpha.900"
+      rounded={"lg"}
+    >
       <Container
         maxW={"lg"}
         // bg="whiteAlpha.100"
         // boxShadow={"xl"}
-        // rounded={"lg"}
         p={6}
       >
         <Stack spacing={3}>
