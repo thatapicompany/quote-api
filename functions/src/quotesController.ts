@@ -7,7 +7,7 @@ import {
 
 const handleAddQuote = async (req: Request, res: Response) => {
 
-  res.status(501).send({ })
+  res.status(501).send({message:"Not yet implemented" })
 
 }
 type QuoteType = {
@@ -47,11 +47,13 @@ const handleGetAllQuotes = async (req: Request, res: Response) => {
   
 
 const handleUpdateQuote = async (req: Request, res: Response) => {
-  res.status(501).send({ })
+
+  res.status(501).send({message:"Not yet implemented" })
 }
 
 const handleDeleteQuote = async (req: Request, res: Response) => {
-  res.status(501).send({ })
+
+  res.status(501).send({message:"Not yet implemented" })
 
   }
 

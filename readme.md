@@ -28,12 +28,12 @@ npm run build`
 
 ```
 cd ../ #(make sure you're in the root of the project)
-npm run deploy --debug
+firebase deploy
 ```
 
 Roadmap:
 
-- [ ] Show how to use The Auth API to generate api keys for users when they signup via firebase
+- [x] Show how to use The Auth API to generate api keys for users when they signup via firebase
 - [x] Show how to integrate The Auth API as middleware to verify the api key
 - [x] Pull Quotes from JSON file
 - [ ] Retrieve and Save Quotes to a database

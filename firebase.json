@@ -19,5 +19,10 @@
       "npm --prefix \"$RESOURCE_DIR\" run build"
     ],
     "source": "functions"
+  },
+  "emulators": {
+    "hosting": {
+      "port": "5012"
+    }
   }
 }

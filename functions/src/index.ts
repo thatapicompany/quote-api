@@ -164,7 +164,6 @@ router.get("/", (req: any, res: any) =>
     .send(`The Quote API, another fine product from ThatAPICompany.`)
 );
 
-router.get("/signup", signupOrRotate);
 router.post("/signup-rotate", signupOrRotate);
 //Quote related endpoints
 router.post("/quotes", handleAddQuote);
