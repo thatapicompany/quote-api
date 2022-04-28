@@ -6,42 +6,39 @@ import {
   Spinner,
   Heading,
   Fade,
-  Link,
   Button,
 } from "@chakra-ui/react";
 import { useDisclosure } from "@chakra-ui/react";
+import { IoReloadOutline } from "react-icons/io5";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 const axios = require("axios").default;
 
 export const Quote = () => {
-  const { isOpen, onToggle, onClose, onOpen } = useDisclosure();
+  const { isOpen, onClose, onOpen } = useDisclosure();
 
   const [data, setData] = useState<{ author: string; text: string }>();
-  const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false);
+  const [rotateQuote, setRotateQuote] = useState("rotate(355deg)");
 
-  const getNewQuote = () => {
-    // console.log("isOpen", isOpen);
-    // if (isOpen) onToggle();
+  const getNewQuote = useCallback(() => {
     axios
-      .get("https://thequoteapi.com/api/quotes/random", {
+      .get(process.env.REACT_APP_QUOTE_API_URL + "quotes/random/", {
         headers: {
-          api_key:
-            "live_OI2gIKEwWE0m3Yh7ScPavLVRCCtlKZgOI3EcrvTYjIVUhnnycrt18ww3KbuRhtZ1",
+          api_key: process.env.REACT_APP_API_KEY,
         },
       })
       .then((response: any) => {
         setData(response.data);
       })
-      .catch((error: any) => setError(error.message))
+      //.catch((error: any) => setError(error.message))
       .finally(() => {
+        degrees();
         setLoaded(true);
         //onToggle();
         onOpen();
-        console.log("isOpen success", isOpen);
       });
-  };
+  }, [isOpen, onOpen]);
   //fist run
 
   useEffect(() => {
@@ -49,46 +46,67 @@ export const Quote = () => {
       getNewQuote();
       return;
     }
-  }, []);
+  }, [data, getNewQuote, rotateQuote]);
 
+  const degrees = () => {
+    if (rotateQuote === "rotate(355deg)") {
+      setRotateQuote("rotate(7deg)");
+      return "rotate(7deg)";
+    } else {
+      setRotateQuote("rotate(355deg)");
+      return "rotate(355deg)";
+    }
+  };
   if (loaded) {
-    //if (error) return <span>Error: {error}</span>;
     if (data)
       return (
-        <Flex
-          align={"center"}
-          justify={"center"}
-          bg="whiteAlpha.900"
-          rounded={"lg"}
-        >
-          <Container maxW={"lg"} p={6}>
-            <Stack spacing={3}>
+        <Stack spacing={4} alignItems={"center"} px={8}>
+          <Flex
+            alignItems={"center"}
+            align={"center"}
+            justify={"center"}
+            bg="whiteAlpha.400"
+            rounded={"lg"}
+            transform={rotateQuote}
+            boxShadow={
+              rotateQuote === "rotate(355deg)"
+                ? "-7px 13px 12px 0px #000000b8"
+                : "13px 13px 12px 0px #000000b8"
+            }
+            maxWidth={"26em"}
+            mb={10}
+            backgroundColor="#fff5c6"
+          >
+            <Container p={8}>
               <Fade in={isOpen}>
-                <Heading
-                  fontSize="5xl"
-                  as="h2"
-                  color={"blackAlpha.700"}
-                  fontWeight={600}
-                >
-                  "{data.text}"
-                </Heading>
-                <Text fontSize="sm">{data.author}</Text>
-
-                <Button
-                  onClick={(e) => {
-                    getNewQuote();
-                    onClose();
-                  }}
-                  colorScheme="blue"
-                  size="xs"
-                  variant={"outline"}
-                >
-                  Load a new quote
-                </Button>
+                <Stack spacing={4}>
+                  <Heading
+                    fontSize="3xl"
+                    as="h2"
+                    fontWeight={400}
+                    color="blackAlpha.700"
+                  >
+                    "{data.text}"
+                  </Heading>
+                  <Text fontSize="sm" color="blackAlpha.700">
+                    {data.author}
+                  </Text>
+                </Stack>
               </Fade>
-            </Stack>
-          </Container>
-        </Flex>
+            </Container>
+          </Flex>
+          <Button
+            leftIcon={<IoReloadOutline />}
+            colorScheme="blue"
+            maxW={"50%"}
+            onClick={(e) => {
+              getNewQuote();
+              onClose();
+            }}
+          >
+            Load a new quote
+          </Button>
+        </Stack>
       );
   }
   return <Spinner color="blue.600" />;

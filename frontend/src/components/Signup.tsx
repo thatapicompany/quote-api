@@ -5,7 +5,6 @@ import {
   Input,
   Button,
   useColorModeValue,
-  Heading,
   Text,
   Container,
   Flex,
@@ -43,14 +42,9 @@ export const Signup = () => {
       .finally(() => setState("success"));
   };
   return (
-    <Flex
-      align={"center"}
-      justify={"center"}
-      bg={useColorModeValue("gray.50", "gray.800")}
-    >
+    <Flex align={"center"} justify={"center"} px={8}>
       <Container
-        maxW={"lg"}
-        bg={useColorModeValue("white", "whiteAlpha.100")}
+        bg={useColorModeValue("blackAlpha.200", "whiteAlpha.400")}
         boxShadow={"xl"}
         rounded={"lg"}
         p={6}
